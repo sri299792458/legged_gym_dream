@@ -74,6 +74,7 @@ class BaseTask():
         self.time_out_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         if self.num_privileged_obs is not None:
             self.privileged_obs_buf = torch.zeros(self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float)
+            #print(f'priviledge_obs_buf{self.privileged_obs_buf.shape}')
         else: 
             self.privileged_obs_buf = None
             # self.num_privileged_obs = self.num_obs
@@ -99,9 +100,11 @@ class BaseTask():
                 self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
 
     def get_observations(self):
+        #print(f'get_observations: {self.obs_buf.shape}')
         return self.obs_buf
     
     def get_privileged_observations(self):
+       
         return self.privileged_obs_buf
 
     def reset_idx(self, env_ids):

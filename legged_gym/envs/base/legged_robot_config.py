@@ -33,12 +33,20 @@ from .base_config import BaseConfig
 class LeggedRobotCfg(BaseConfig):
     class env:
         num_envs = 4096
-        num_observations = 235
-        num_privileged_obs = None # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
+        num_observations = 45
+        num_privileged_obs = 241 # 187 (height) +51 (contact forces) + 3 (base lin vel)
+        #privileged_obs = ['height', 'contact_forces', 'base_lin_vel'] does not include observation o_t that is concatenated to the privileged obs
+        # as I am following the meaning of priveleged obs as in Walk these ways
         num_actions = 12
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
+        
+        #add
+        num_observation_history = 5
+
+        priv_observe_contact_forces = True
+        priv_observe_base_lin_vel = True
 
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
@@ -48,7 +56,7 @@ class LeggedRobotCfg(BaseConfig):
         curriculum = True
         static_friction = 1.0
         dynamic_friction = 1.0
-        restitution = 0.
+        restitution = 0.5
         # rough terrain only:
         measure_heights = True
         measured_points_x = [-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] # 1mx1.6m rectangle (without center line)
@@ -108,7 +116,7 @@ class LeggedRobotCfg(BaseConfig):
         default_dof_drive_mode = 3 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
         replace_cylinder_with_capsule = True # replace collision cylinders with capsules, leads to faster/more stable simulation
-        flip_visual_attachments = True # Some .obj meshes must be flipped from y-up to z-up
+        flip_visual_attachments = False # Some .obj meshes must be flipped from y-up to z-up
         
         density = 0.001
         angular_damping = 0.
@@ -119,13 +127,25 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class domain_rand:
+        rand_interval_s = 4
         randomize_friction = True
-        friction_range = [0.5, 1.25]
-        randomize_base_mass = False
-        added_mass_range = [-1., 1.]
-        push_robots = True
+        friction_range = [0.2, 1.25]
+        randomize_base_mass = True
+        added_mass_range = [-1., 2.]
+        push_robots = False
         push_interval_s = 15
         max_push_vel_xy = 1.
+        randomize_com_displacement = True
+        com_displacement_range = [-0.05, 0.05]
+        randomize_motor_strength = True
+        motor_strength_range = [0.9, 1.1]
+        randomize_Kp_factor = True
+        Kp_factor_range = [0.9, 1.1]
+        randomize_Kd_factor = True
+        Kd_factor_range = [0.9, 1.1]
+
+
+
 
     class rewards:
         class scales:
@@ -134,16 +154,23 @@ class LeggedRobotCfg(BaseConfig):
             tracking_ang_vel = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
-            orientation = -0.
-            torques = -0.00001
-            dof_vel = -0.
+            orientation = -0.2
+            #torques = -0.00001
+            #dof_vel = -0.
             dof_acc = -2.5e-7
-            base_height = -0. 
-            feet_air_time =  1.0
+            base_height = -1.0 
+            #feet_air_time =  1.0
             collision = -1.
-            feet_stumble = -0.0 
+            #feet_stumble = -0.0 
             action_rate = -0.01
-            stand_still = -0.
+            #stand_still = -0.
+
+            joint_power=-2e-5
+            smoothness=-0.01
+            feet_clearance=-0.01
+            power_distribution=-10e-5
+
+            
 
         only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
@@ -151,9 +178,12 @@ class LeggedRobotCfg(BaseConfig):
         soft_dof_vel_limit = 1.
         soft_torque_limit = 1.
         base_height_target = 1.
+
+
         max_contact_force = 100. # forces above this value are penalized
 
     class normalization:
+        contact_force_range = [0.0, 50.0]
         class obs_scales:
             lin_vel = 2.0
             ang_vel = 0.25
@@ -231,7 +261,7 @@ class LeggedRobotCfgPPO(BaseConfig):
         policy_class_name = 'ActorCritic'
         algorithm_class_name = 'PPO'
         num_steps_per_env = 24 # per iteration
-        max_iterations = 1500 # number of policy updates
+        max_iterations = 3000 # number of policy updates
 
         # logging
         save_interval = 50 # check for potential saves every this many iterations

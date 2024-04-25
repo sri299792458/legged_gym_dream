@@ -28,25 +28,33 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
-from legged_gym.envs.a1.a1_config import A1RoughCfg, A1RoughCfgPPO
-from .base.legged_robot import LeggedRobot
-from .anymal_c.anymal import Anymal
-from .anymal_c.mixed_terrains.anymal_c_rough_config import AnymalCRoughCfg, AnymalCRoughCfgPPO
-from .anymal_c.flat.anymal_c_flat_config import AnymalCFlatCfg, AnymalCFlatCfgPPO
-from .anymal_b.anymal_b_config import AnymalBRoughCfg, AnymalBRoughCfgPPO
-from .cassie.cassie import Cassie
-from .cassie.cassie_config import CassieRoughCfg, CassieRoughCfgPPO
-from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
-from .go1.go1_config import Go1RoughCfg, Go1RoughCfgPPO
+from abc import ABC, abstractmethod
+import torch
+from typing import Tuple, Union
 
-import os
-
-from legged_gym.utils.task_registry import task_registry
-
-task_registry.register( "anymal_c_rough", Anymal, AnymalCRoughCfg(), AnymalCRoughCfgPPO() )
-task_registry.register( "anymal_c_flat", Anymal, AnymalCFlatCfg(), AnymalCFlatCfgPPO() )
-task_registry.register( "anymal_b", Anymal, AnymalBRoughCfg(), AnymalBRoughCfgPPO() )
-task_registry.register( "a1", LeggedRobot, A1RoughCfg(), A1RoughCfgPPO() )
-task_registry.register( "cassie", Cassie, CassieRoughCfg(), CassieRoughCfgPPO() )
-task_registry.register( "go1", LeggedRobot, Go1RoughCfg(), Go1RoughCfgPPO() )
+# minimal interface of the environment
+class VecEnv(ABC):
+    num_envs: int
+    num_obs: int
+    num_privileged_obs: int
+    num_actions: int
+    max_episode_length: int
+    privileged_obs_buf: torch.Tensor
+    obs_buf: torch.Tensor 
+    rew_buf: torch.Tensor
+    reset_buf: torch.Tensor
+    episode_length_buf: torch.Tensor # current episode duration
+    extras: dict
+    device: torch.device
+    @abstractmethod
+    def step(self, actions: torch.Tensor) -> Tuple[torch.Tensor, Union[torch.Tensor, None], torch.Tensor, torch.Tensor, dict]:
+        pass
+    @abstractmethod
+    def reset(self, env_ids: Union[list, torch.Tensor]):
+        pass
+    @abstractmethod
+    def get_observations(self) -> torch.Tensor:
+        pass
+    @abstractmethod
+    def get_privileged_observations(self) -> Union[torch.Tensor, None]:
+        pass

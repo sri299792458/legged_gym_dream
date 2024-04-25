@@ -28,11 +28,12 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-import torch
-from torch import Tensor
+
 import numpy as np
 from isaacgym.torch_utils import quat_apply, normalize
 from typing import Tuple
+import torch
+from torch import Tensor
 
 # @ torch.jit.script
 def quat_apply_yaw(quat, vec):
@@ -54,3 +55,8 @@ def torch_rand_sqrt_float(lower, upper, shape, device):
     r = torch.where(r<0., -torch.sqrt(-r), torch.sqrt(r))
     r =  (r + 1.) / 2.
     return (upper - lower) * r + lower
+
+def get_scale_shift(range):
+    scale = 2. / (range[1] - range[0])
+    shift = (range[1] + range[0]) / 2.
+    return scale, shift

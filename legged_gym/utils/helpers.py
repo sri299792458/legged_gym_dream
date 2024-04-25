@@ -30,14 +30,13 @@
 
 import os
 import copy
-import torch
+
 import numpy as np
 import random
 from isaacgym import gymapi
 from isaacgym import gymutil
-
 from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
-
+import torch
 def class_to_dict(obj) -> dict:
     if not  hasattr(obj,"__dict__"):
         return obj
@@ -177,17 +176,32 @@ def get_args():
         args.sim_device += f":{args.sim_device_id}"
     return args
 
-def export_policy_as_jit(actor_critic, path):
-    if hasattr(actor_critic, 'memory_a'):
-        # assumes LSTM: TODO add GRU
-        exporter = PolicyExporterLSTM(actor_critic)
-        exporter.export(path)
-    else: 
+# def export_policy_as_jit(actor_critic, path):
+#     if hasattr(actor_critic, 'memory_a'):
+#         # assumes LSTM: TODO add GRU
+#         exporter = PolicyExporterLSTM(actor_critic)
+#         exporter.export(path)
+#     else: 
+#         os.makedirs(path, exist_ok=True)
+#         path = os.path.join(path, 'policy_1.pt')
+#         model = copy.deepcopy(actor_critic.actor).to('cpu')
+#         traced_script_module = torch.jit.script(model)
+#         traced_script_module.save(path)
+def export_policy_as_jit_actor(actor_critic, path):
         os.makedirs(path, exist_ok=True)
-        path = os.path.join(path, 'policy_1.pt')
+        path = os.path.join(path, 'actor_1.pt')
         model = copy.deepcopy(actor_critic.actor).to('cpu')
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path)
+
+def export_policy_as_jit_encoder(actor_critic, path):
+        os.makedirs(path, exist_ok=True)
+        path = os.path.join(path, 'encoder_1.pt')
+        model = copy.deepcopy(actor_critic.encoder_module).to('cpu')
+        traced_script_module = torch.jit.script(model)
+        traced_script_module.save(path)
+
+
 
 
 class PolicyExporterLSTM(torch.nn.Module):
