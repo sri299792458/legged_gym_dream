@@ -1,10 +1,21 @@
 # Isaac Gym Environments for Legged Robots #
-This repository provides the environment used to train ANYmal (and other robots) to walk on rough terrain using NVIDIA's Isaac Gym.
-It includes all components needed for sim-to-real transfer: actuator network, friction & mass randomization, noisy observations and random pushes during training.  
+
+This repository provides the environment used to train ANYmal (and other robots) to walk on rough terrain using NVIDIA's Isaac Gym. It includes all components needed for sim-to-real transfer: actuator network, friction & mass randomization, noisy observations, and random pushes during training.
+
+## Updates in This Fork
+
+This fork of the original repository incorporates the implementation of the ["DreamWaQ"](https://arxiv.org/abs/2301.10602) paper, which focuses on robust quadrupedal locomotion using deep reinforcement learning. The following enhancements have been made:
+
+- **Beta-Variational Auto Encoder**: Integrated into the `actor_critic.py`.
+- **History Wrapper**: Added for recording observation histories.
+- **Unitree Go1 URDF**: Included the URDF model of the Unitree Go1 robot.
+- **Deploy Policy**: Added functionality to execute the trained policy on real hardware, adapted from the ["Walk These Ways"](https://github.com/Improbable-AI/walk-these-ways) repository.
+
+
 
 **Maintainer**: Nikita Rudin  
 **Affiliation**: Robotic Systems Lab, ETH Zurich  
-**Contact**: rudinn@ethz.ch  
+**Contact**: rudinn@ethz.ch
 
 ---
 
@@ -18,7 +29,7 @@ Information about this work's locomotion-related tasks in Orbit is available [he
 
 ### Useful Links ###
 
-Project website: https://leggedrobotics.github.io/legged_gym/   
+Project website: https://leggedrobotics.github.io/legged_gym/  
 Paper: https://arxiv.org/abs/2109.11978
 
 ### Installation ###
@@ -77,7 +88,6 @@ The base environment `legged_robot` implements a rough terrain locomotion task. 
 4. Register your env in `isaacgym_anymal/envs/__init__.py`.
 5. Modify/Tune other parameters in your `cfg`, `cfg_train` as needed. To remove a reward set its scale to zero. Do not modify parameters of other envs!
 
-
 ### Troubleshooting ###
 1. If you get the following error: `ImportError: libpython3.8m.so.1.0: cannot open shared object file: No such file or directory`, do: `sudo apt install libpython3.8`. It is also possible that you need to do `export LD_LIBRARY_PATH=/path/to/libpython/directory` / `export LD_LIBRARY_PATH=/path/to/conda/envs/your_env/lib`(for conda user. Replace /path/to/ to the corresponding path.).
 
@@ -103,3 +113,4 @@ The base environment `legged_robot` implements a rough terrain locomotion task. 
     self.gym.refresh_force_sensor_tensor(self.sim)
     contact = self.sensor_forces[:, :, 2] > 1.
 ```
+
